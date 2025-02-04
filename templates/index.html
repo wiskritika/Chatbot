@@ -1,60 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Interface</title>
+    <title>Chatbot</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        #chatbox {
-            border: 1px solid #ccc;
-            padding: 10px;
-            height: 400px;
-            overflow-y: scroll;
-            background-color: #fff;
-        }
-        #user_input {
-            width: 80%;
-            padding: 10px;
-        }
-        #send_button {
-            padding: 10px;
-        }
+        .chat-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.chat-box {
+    height: 500px;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+.user-message {
+    text-align: right;
+    margin: 5px;
+    padding: 8px;
+    background-color: #e3f2fd;
+    border-radius: 10px;
+}
+
+.bot-message {
+    text-align: left;
+    margin: 5px;
+    padding: 8px;
+    background-color: #fff;
+    border-radius: 10px;
+    border: 1px solid #eee;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
     </style>
 </head>
 <body>
-    <h1>Chatbot</h1>
-    <div id="chatbox"></div>
-    <input type="text" id="user_input" placeholder="Type your message here...">
-    <button id="send_button">Send</button>
+    <div class="chat-container">
+        <div id="chat-box" class="chat-box"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
-            $('#send_button').click(function() {
-                var userMessage = $('#user_input').val();
-                $('#chatbox').append('<div>User: ' + userMessage + '</div>');
-                $('#user_input').val('');
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
 
-                $.post('/chat', JSON.stringify({ message: userMessage }), function(data) {
-                    $('#chatbox').append('<div>Bot: ' + data.response + '</div>');
-                    $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight); // Scroll to the bottom
-                }, 'json').fail(function() {
-                    $('#chatbox').append('<div>Bot: Sorry, there was an error.</div>');
+        function appendMessage(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'user-message' : 'bot-message';
+            messageDiv.textContent = message;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            appendMessage(message, true);
+            userInput.value = '';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
                 });
-            });
 
-            // Allow pressing Enter to send the message
-            $('#user_input').keypress(function(e) {
-                if (e.which == 13) {
-                    $('#send_button').click();
-                }
-            });
+                const data = await response.json();
+                appendMessage(data.response, false);
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage("Sorry, I'm having trouble connecting.", false);
+            }
+        }
+
+        // Handle Enter key
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
         });
     </script>
 </body>
