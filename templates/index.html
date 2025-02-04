@@ -3,7 +3,7 @@
 <head>
     <title>Chatbot</title>
     <style>
-        .chat-container {
+   .chat-container {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
@@ -58,8 +58,7 @@ button {
 
 button:hover {
     background-color: #0056b3;
-}
-    </style>
+}   </style>
 </head>
 <body>
     <div class="chat-container">
@@ -100,6 +99,21 @@ button:hover {
 
                 const data = await response.json();
                 appendMessage(data.response, false);
+
+                // Check for appointment booking flow and handle dynamically
+                if (data.response.includes("Please provide your name:") ||
+                    data.response.includes("Please provide your phone number:") ||
+                    data.response.includes("Please provide your email address:") ||
+                    data.response.includes("What date would you like to book the appointment for?") ||
+                    data.response.includes("What time would you like to book the appointment for?") ||
+                    data.response.includes("Invalid phone number format") ||
+                    data.response.includes("Invalid email format") ||
+                    data.response.includes("Invalid date format")) {
+
+                    // Focus on the input box to make it easier for the user to respond
+                    userInput.focus();
+                }
+
             } catch (error) {
                 console.error('Error:', error);
                 appendMessage("Sorry, I'm having trouble connecting.", false);
@@ -110,6 +124,14 @@ button:hover {
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
+
+        // Initial bot greeting (optional) - after page load
+        window.addEventListener('DOMContentLoaded', (event) => {
+            setTimeout(() => { // Small delay to ensure chatbox is rendered
+                appendMessage("Hello! How can I help you?", false);
+            }, 100);  
+        });
+
     </script>
 </body>
 </html>
